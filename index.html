@@ -36,27 +36,7 @@
                 transform-origin: center top;
                 animation: lbDrop 700ms cubic-bezier(.22,.9,.26,1) both;
             }
-            .home-leaderboard h3 { text-align:center; margin: 0 0 10px; font-size: 1.1rem; }
-            .home-leaderboard ol { list-style: none; padding: 0; margin: 0; }
-            .home-leaderboard li { display:flex; justify-content:space-between; padding:8px 10px; border-radius:8px; margin-bottom:6px; background: rgba(255,255,255,0.02); align-items:center; }
-            .home-leaderboard li .rank { width:28px; font-weight:700; }
-            .home-leaderboard li .name { flex:1; padding-left:6px; }
-            .home-leaderboard li .score { font-family: monospace; color:#fff; }
-            @keyframes lbPop { from { transform: scale(.98); opacity:0 } to { transform: scale(1); opacity:1 } }
-            @keyframes lbDrop { from { transform: translateY(-10px) scale(.99); opacity:0 } to { transform: translateY(0) scale(1); opacity:1 } }
         </style>
-
-        <div id="home-leaderboard" class="home-leaderboard" aria-live="polite">
-            <!-- Populated from localStorage -->
-            <h3>Topp 5 - Snake</h3>
-            <ol id="home-lb-list">
-                <li style="opacity:.6"><span class="rank">1</span><span class="name">-</span><span class="score">-</span></li>
-                <li style="opacity:.6"><span class="rank">2</span><span class="name">-</span><span class="score">-</span></li>
-                <li style="opacity:.6"><span class="rank">3</span><span class="name">-</span><span class="score">-</span></li>
-                <li style="opacity:.6"><span class="rank">4</span><span class="name">-</span><span class="score">-</span></li>
-                <li style="opacity:.6"><span class="rank">5</span><span class="name">-</span><span class="score">-</span></li>
-            </ol>
-        </div>
         <span id="advarsel-tekst" style="font-size: 1em; margin-left: 24px; vertical-align: middle; display: inline-block; color: #d9534f; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
             Do not press the text to the over!
         </span>
