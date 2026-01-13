@@ -1,4 +1,4 @@
-https://27wilhan-debug.github.io/Veldig-kul-nettside/
+https://27wilhan-debug.github.io/Veldig-kul-nettside/site-down.html
 
 ✨ Features
 
