@@ -1,17 +1,9 @@
 https://27wilhan-debug.github.io/Veldig-kul-nettside/site-down.html
 
-✨ Features
+⛔ MAIN SITE CLOSED FOR MAINTANCE ⛔
 
-🎨 Smooth animations and visual effects
-🌙 Built-in Dark Mode / Light Mode
-🐍 Playable Snake game
-🏆 Top 5 high-score leaderboard
-💾 Scores are saved locally in the browser
-🧩 Fun hidden interactions and easter eggs
+This website is under development 🚧
+When we are finished it will be awesome 👌
+You can play our snake game while we are working 🐍
 
 
-🕹 Snake Game
-
-Control with Arrow Keys or WASD
-Your score is saved automatically
-The Top 5 best scores are shown on the homepage
