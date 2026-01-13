@@ -1,0 +1,445 @@
+<html>
+    <head>
+        <style>
+                @keyframes myAnim {
+                from {color: white;}
+                to {color: black;}
+            }
+            
+            .prosjekter {
+                color: lightskyblue;
+                animation: myAnim 4s ease-in;
+            }
+            .prosjekter {
+                margin-top: 50px;
+            }
+            .cool-start {
+                background: linear-gradient(90deg,#00c6ff,#0072ff);
+                color: #fff;
+                border: none;
+                padding: 10px 18px;
+                border-radius: 8px;
+                font-size: 1rem;
+                cursor: pointer;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+            .cool-start:hover {
+                transform: translateY(-3px) scale(1.03);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            }
+            .game-wrap {
+                display: flex;
+                gap: 24px;
+                align-items: flex-start;
+                justify-content: center;
+                margin-top: 12px;
+            }
+            .game-left {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .leaderboard-panel {
+                width: 260px;
+                background: linear-gradient(180deg,#0f1724,#071228);
+                color: #e6f7ff;
+                border-radius: 12px;
+                padding: 12px;
+                box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+                font-family: Arial, sans-serif;
+            }
+            .leaderboard-panel h3 { margin: 4px 0 8px; text-align:center; }
+            .lb-list { list-style: none; padding: 0; margin: 0; }
+            .lb-item { display: flex; justify-content: space-between; padding: 8px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.03); transform-origin: left center; }
+            .lb-item:nth-child(1) { background: linear-gradient(90deg, rgba(255,215,0,0.12), rgba(255,255,255,0.02)); }
+            .lb-item .name { font-weight: 600; }
+            .lb-item .score { font-family: monospace; }
+            @keyframes popIn {
+                from { opacity: 0; transform: translateX(10px) scale(0.98); }
+                to { opacity: 1; transform: translateX(0) scale(1); }
+            }
+        </style>
+    </head>
+    <body>
+        <h1 class="prosjekter">Veldig kul Prosjekter!</h1>
+
+        <div class="game-wrap">
+            <div class="game-left">
+                <h2>Snake Game</h2>
+                <canvas id="snakeCanvas" width="400" height="400" style="border: 1px solid #222; background:#000; display: block;">
+                </canvas>
+                <div style="text-align: center; margin-top:8px;">
+                    <p style="display:none">Score: <span id="score">0</span></p>
+                    <button id="startBtn" class="cool-start">Start Game</button>
+                </div>
+            </div>
+            <aside id="leaderboard" class="leaderboard-panel" aria-live="polite">
+            </aside>
+        </div>
+
+        <script>
+            const canvas = document.getElementById('snakeCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreElement = document.getElementById('score');
+            const startBtn = document.getElementById('startBtn');
+
+            const gridSize = 20;
+            const tileCount = canvas.width / gridSize;
+
+            let snake = [
+                {x: 10, y: 10}
+            ];
+            let food = {};
+            let dx = 0;
+            let dy = 0;
+            let score = 0;
+            let gameRunning = false;
+            let gameIntervalId = null;
+
+            function randomTile() {
+                return Math.floor(Math.random() * tileCount);
+            }
+
+            function generateFood() {
+                let fx, fy;
+                do {
+                    fx = randomTile();
+                    fy = randomTile();
+                } while (snake.some(s => s.x === fx && s.y === fy));
+                food = { x: fx, y: fy };
+            }
+
+            function drawGame() {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'lime';
+                for (let segment of snake) {
+                    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+                }
+
+                ctx.fillStyle = 'red';
+                ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+                ctx.fillStyle = 'white';
+                ctx.font = '18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Score: ' + score, canvas.width / 2, 20);
+            }
+
+            function moveSnake() {
+                if (dx === 0 && dy === 0) return;
+
+                const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    gameOver();
+                    return;
+                }
+
+                for (let i = 0; i < snake.length; i++) {
+                    const segment = snake[i];
+                    if (head.x === segment.x && head.y === segment.y) {
+                        gameOver();
+                        return;
+                    }
+                }
+
+                snake.unshift(head);
+
+                if (head.x === food.x && head.y === food.y) {
+                    score++;
+                    scoreElement.textContent = score;
+                    generateFood();
+                } else {
+                    snake.pop();
+                }
+            }
+
+            
+
+            function resetGame() {
+                snake = [{x: 10, y: 10}];
+                dx = 0;
+                dy = 0;
+                score = 0;
+                scoreElement.textContent = score;
+                generateFood();
+                drawGame();
+            }
+
+            function gameLoop() {
+                if (!gameRunning) return;
+                moveSnake();
+                drawGame();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (!gameRunning) return;
+                const key = (e.key || '').toLowerCase();
+                if ((key === 'arrowleft' || key === 'a') && dx === 0) {
+                    dx = -1; dy = 0;
+                } else if ((key === 'arrowup' || key === 'w') && dy === 0) {
+                    dx = 0; dy = -1;
+                } else if ((key === 'arrowright' || key === 'd') && dx === 0) {
+                    dx = 1; dy = 0;
+                } else if ((key === 'arrowdown' || key === 's') && dy === 0) {
+                    dx = 0; dy = 1;
+                }
+            });
+
+            startBtn.addEventListener('click', () => {
+                if (!gameRunning) {
+                    gameRunning = true;
+                    resetGame();
+                    dx = 1;
+                    dy = 0;
+                    if (gameIntervalId) clearInterval(gameIntervalId);
+                    gameIntervalId = setInterval(gameLoop, 100);
+                }
+            });
+
+            generateFood();
+            drawGame();
+
+            <!-- Admin control panel (owner only) -->
+            
+            // Historikk + Leaderboard management bruk av localStorage
+            function loadHistory() {
+                try {
+                    const raw = localStorage.getItem('snakeHistory');
+                    return raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveHistory(list) {
+                localStorage.setItem('snakeHistory', JSON.stringify(list));
+            }
+
+            function loadLeaderboard() {
+                try {
+                    const raw = localStorage.getItem('snakeLeaderboard');
+                    return raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveLeaderboard(list) {
+                localStorage.setItem('snakeLeaderboard', JSON.stringify(list));
+            }
+
+            function recomputeAndSaveLeaderboard() {
+                const history = loadHistory();
+                const map = {};
+                for (const h of history) {
+                    const n = (h.name || 'Anonym').trim();
+                    const key = n.toLowerCase();
+                    const s = Number(h.score) || 0;
+                    if (!map[key] || (map[key].score < s)) {
+                        map[key] = { name: n, score: s, ts: h.ts || 0 };
+                    }
+                }
+                const arr = Object.values(map);
+                arr.sort((a,b) => b.score - a.score || a.ts - b.ts);
+                if (arr.length > 5) arr.length = 5;
+                saveLeaderboard(arr);
+                return arr;
+            }
+
+            function addHistoryEntry(name, score) {
+                const history = loadHistory();
+                const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,8), name: (name||'Anonym').trim(), score: Number(score)||0, ts: Date.now() };
+                history.push(entry);
+                saveHistory(history);
+                recomputeAndSaveLeaderboard();
+            }
+
+            function renderLeaderboard() {
+                const list = loadLeaderboard();
+                const el = document.getElementById('leaderboard');
+                if (!el) return;
+                let html = '<h3>Topp 5</h3>';
+                html += '<ul class="lb-list">';
+                for (let i = 0; i < 5; i++) {
+                    const item = list[i];
+                    if (item) {
+                        html += `<li class="lb-item" style="animation: popIn 360ms ease ${i * 80}ms both;"><span class="name">${escapeHtml(item.name)}</span><span class="score">${item.score}</span></li>`;
+                    } else {
+                        html += `<li class="lb-item" style="opacity:.5;">-<span style="float:right">-</span></li>`;
+                    }
+                }
+                html += '</ul>';
+                el.innerHTML = html;
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"'`]/g, function (s) {
+                    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;","`":"&#96;"})[s];
+                });
+            }
+
+            // Admin UI functions
+            function renderHistoryAdmin() {
+                const history = loadHistory().slice().sort((a,b)=>b.ts - a.ts);
+                const container = document.getElementById('history-list');
+                if (!container) return;
+                if (history.length === 0) { container.innerHTML = '<div style="opacity:.6">Ingen poster</div>'; return; }
+                const rows = history.map(h => {
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px;border-bottom:1px solid rgba(0,0,0,0.06)"><div><strong>${escapeHtml(h.name)}</strong> <span style="color:#666;margin-left:6px;font-size:12px">${new Date(h.ts).toLocaleString()}</span><div style="font-family:monospace;color:#111">Poeng: ${h.score}</div></div><div style="display:flex;flex-direction:column;gap:6px;margin-left:8px"><button data-id="${h.id}" class="edit-history" style="padding:6px;border-radius:6px">Endre</button><button data-id="${h.id}" class="del-history" style="padding:6px;border-radius:6px">Slett</button></div></div>`;
+                });
+                container.innerHTML = rows.join('');
+                container.querySelectorAll('.edit-history').forEach(btn=>btn.addEventListener('click', ()=>{
+                    const id = btn.getAttribute('data-id');
+                    adminEditHistory(id);
+                }));
+                container.querySelectorAll('.del-history').forEach(btn=>btn.addEventListener('click', ()=>{
+                    const id = btn.getAttribute('data-id');
+                    if (!confirm('Slett denne posten?')) return;
+                    adminDeleteHistory(id);
+                }));
+            }
+
+            function renderLeaderboardAdmin() {
+                const lb = loadLeaderboard();
+                const container = document.getElementById('leaderboard-admin-list');
+                if (!container) return;
+                if (lb.length === 0) { container.innerHTML = '<div style="opacity:.6">Ingen poster</div>'; return; }
+                const rows = lb.map((it,i)=>{
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px;border-bottom:1px solid rgba(255,255,255,0.03)"><div><strong>#${i+1} ${escapeHtml(it.name)}</strong><div style="font-family:monospace">${it.score}</div></div><div style="display:flex;flex-direction:column;gap:6px"><button data-name="${escapeHtml(it.name)}" class="del-player" style="padding:6px;border-radius:6px">Slett spiller</button></div></div>`;
+                });
+                container.innerHTML = rows.join('');
+                container.querySelectorAll('.del-player').forEach(b=>b.addEventListener('click', ()=>{
+                    const name = b.getAttribute('data-name');
+                    if (!confirm('Slett alle poster for ' + name + '?')) return;
+                    adminDeletePlayer(name);
+                }));
+            }
+
+            function adminEditHistory(id) {
+                const history = loadHistory();
+                const idx = history.findIndex(h=>h.id===id);
+                if (idx===-1) return alert('Fant ikke posten');
+                const h = history[idx];
+                const newName = prompt('Endre navn', h.name);
+                if (newName === null) return;
+                const newScore = prompt('Endre poeng', String(h.score));
+                if (newScore === null) return;
+                history[idx].name = newName.trim() || 'Anonym';
+                history[idx].score = Number(newScore) || 0;
+                saveHistory(history);
+                recomputeAndSaveLeaderboard();
+                renderHistoryAdmin();
+                renderLeaderboardAdmin();
+                renderLeaderboard();
+            }
+
+            function adminDeleteHistory(id) {
+                let history = loadHistory();
+                history = history.filter(h=>h.id!==id);
+                saveHistory(history);
+                recomputeAndSaveLeaderboard();
+                renderHistoryAdmin();
+                renderLeaderboardAdmin();
+                renderLeaderboard();
+            }
+
+            function adminDeletePlayer(name) {
+                let history = loadHistory();
+                const low = name.trim().toLowerCase();
+                history = history.filter(h=> (h.name||'').trim().toLowerCase() !== low);
+                saveHistory(history);
+                recomputeAndSaveLeaderboard();
+                renderHistoryAdmin();
+                renderLeaderboardAdmin();
+                renderLeaderboard();
+            }
+
+            document.addEventListener('click', (e)=>{
+                if (e.target && e.target.id === 'clear-history') {
+                    if (!confirm('Tøm all historikk?')) return;
+                    saveHistory([]);
+                    recomputeAndSaveLeaderboard();
+                    renderHistoryAdmin();
+                    renderLeaderboardAdmin();
+                    renderLeaderboard();
+                }
+            });
+
+            document.addEventListener('click', (e)=>{
+                if (e.target && e.target.id === 'admin-unlock') {
+                    const pw = document.getElementById('admin-password').value || '';
+                    if (pw === 'banan123') {
+                        document.getElementById('admin-area').style.display = 'flex';
+                        document.getElementById('admin-area').style.flexDirection = 'row';
+                        document.getElementById('admin-area').setAttribute('aria-hidden','false');
+                        renderHistoryAdmin();
+                        renderLeaderboardAdmin();
+                    } else {
+                        alert('Feil passord');
+                    }
+                }
+            });
+
+            document.addEventListener('click', (e)=>{
+                if (e.target && e.target.id === 'newrec-add') {
+                    const n = document.getElementById('newrec-name').value || '';
+                    const s = Number(document.getElementById('newrec-score').value) || 0;
+                    if (!n.trim()) return alert('Skriv navn');
+                    addHistoryEntry(n.trim(), s);
+                    document.getElementById('newrec-name').value = '';
+                    document.getElementById('newrec-score').value = '';
+                    renderHistoryAdmin();
+                    renderLeaderboardAdmin();
+                    renderLeaderboard();
+                }
+            });
+
+            function gameOver() {
+                gameRunning = false;
+                if (gameIntervalId) {
+                    clearInterval(gameIntervalId);
+                    gameIntervalId = null;
+                }
+                const playerName = prompt('Game Over! Poeng: ' + score + '\nHva heter du?');
+                addHistoryEntry(playerName ? playerName.trim() : 'Anonym', score);
+                renderLeaderboard();
+                renderLeaderboardAdmin();
+                renderHistoryAdmin();
+                alert('Takk! Resultatet er lagret.');
+                resetGame();
+            }
+
+            document.addEventListener('DOMContentLoaded', function(){ recomputeAndSaveLeaderboard(); renderLeaderboard(); });
+        </script>
+
+
+<div id="topbar" style="position: fixed; top: 0; width: 100%; text-align: center; background-color: lightgray; padding: 10px; font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;">
+    <span style="margin-left: 20px;">
+        <button onclick="window.location.href='index.html'">Hjem</button>
+        <button onclick="window.location.href='om-meg.html'">Om meg</button>
+        <button onclick="window.location.href='prosjekter.html'">Prosjekter</button>
+        <button onclick="window.location.href='problem.html'">Problem</button>
+        <button id="admin-open-link" class="cool-btn" style="margin-left:12px;">Admin</button>
+    </span>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('admin-open-link');
+        if (!btn) return;
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pw = document.getElementById('admin-password');
+            if (pw) {
+                pw.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                pw.focus({ preventScroll: false });
+            } else {
+                alert('Admin-panelet finnes lenger ned på siden. Scroll ned for å finne det.');
+            }
+        });
+    });
+</script>
+    </body>
+</html>
